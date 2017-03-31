@@ -66,3 +66,30 @@ class SignUpForm(forms.ModelForm):
         if password and password != confirm_password:
             self._errors['password'] = self.error_class([u'密码不匹配'])
         return self.cleaned_data
+
+
+
+
+class LoginForm(forms.ModelForm):
+    username = forms.CharField(widget=forms.TextInput(attrs={'class':'form-control'}),
+                               max_length=30,required=True,label=u'用户名',error_messages={'required':u'用户名不能为空'})
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'class':'form-control'}),
+                               label=u'密码',error_messages={'required':u'密码不能为空'},
+                               required=True)
+    class Meta:
+        model = User
+        fields=['username','password']
+        exclude=['last_login', 'date_joined', 'email','confirm_password']
+
+    def __init__(self,*args,**kwargs):
+        super(LoginForm,self).__init__(*args,**kwargs)
+
+    def clean(self):
+        username=self.cleaned_data.get('username')
+        password=self.cleaned_data.get('password')
+        if username and password:
+            self.user_cache = auth.authenticate(username=username,password=password)
+            if self.user_cache is None:
+                self._errors['username'] = self.error_class([u'账号密码不匹配'])
+        return self.cleaned_data
+
